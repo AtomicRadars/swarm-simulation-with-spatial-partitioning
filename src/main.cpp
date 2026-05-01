@@ -1,8 +1,9 @@
 #include "core/AgentData.hpp"
 #include "core/AgentInitializer.hpp"
-#include "core/BackendType.hpp"
 #include "core/SimulationParams.hpp"
+#include "cpu/CpuNaiveBackend.hpp"
 
+#include <cstdint>
 #include <iostream>
 
 namespace
@@ -33,12 +34,15 @@ int main()
 
     SimulationParams params{};
 
-    AgentData agents{};
-    agents.resize(params.maxAgentCapacity);
-    agents.setCount(params.initialAgentCount);
+    AgentData initialAgents{};
+    initialAgents.resize(params.maxAgentCapacity);
+    initialAgents.setCount(params.initialAgentCount);
 
-    constexpr std::uint32_t seed{31};
-    AgentInitializer::initializeRandom(agents, params, seed);
+    constexpr uint32_t seed{42};
+    AgentInitializer::initializeRandom(initialAgents, params, seed);
+
+    CpuNaiveBackend backend{};
+    backend.initialize(initialAgents, params);
 
     std::cout << "World size: "
               << params.worldWidth
@@ -47,24 +51,24 @@ int main()
               << '\n';
 
     std::cout << "Agent capacity: "
-              << agents.capacity
+              << initialAgents.capacity
               << '\n';
 
     std::cout << "Active agent count: "
-              << agents.count
+              << backend.getAgentCount()
               << '\n';
 
-    BackendType backend{BackendType::CpuNaive};
+    std::cout << "Current backend: CPU Naive\n";
 
-    if (backend == BackendType::CpuNaive)
-    {
-        std::cout << "Current backend: CPU Naive\n";
-    }
+    std::cout << "\nBefore simulation step:\n";
+    printFirstAgents(backend.getAgentData(), 5);
 
-    std::cout << "\nFirst initialized agents:\n";
-    printFirstAgents(agents, 5);
+    backend.step(params.deltaTime);
 
-    std::cout << "\nProject skeleton with agent initialization is working.\n";
+    std::cout << "\nAfter one simulation step:\n";
+    printFirstAgents(backend.getAgentData(), 5);
+
+    std::cout << "\nCPU naive backend simple movement test is working.\n";
 
     return 0;
 }

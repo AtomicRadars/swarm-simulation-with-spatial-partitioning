@@ -9,6 +9,7 @@ add_executable(SwarmCudaProject
     src/main.cpp
     src/core/AgentData.cpp
     src/core/AgentInitializer.cpp
+    src/cpu/CpuNaiveBackend.cpp
 )
 
 target_include_directories(SwarmCudaProject
