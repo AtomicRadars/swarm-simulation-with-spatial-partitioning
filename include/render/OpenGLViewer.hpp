@@ -29,6 +29,8 @@ public:
 
     void pollEvents();
 
+    void setWindowTitle(const char* title);
+
 private:
     void setupProjection();
     void shutdown();

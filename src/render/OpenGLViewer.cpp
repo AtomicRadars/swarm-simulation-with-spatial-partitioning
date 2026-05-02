@@ -150,3 +150,11 @@ void OpenGLViewer::shutdown()
 
     initialized_ = false;
 }
+
+void OpenGLViewer::setWindowTitle(const char* title)
+{
+    if (window_ != nullptr)
+    {
+        glfwSetWindowTitle(window_, title);
+    }
+}
