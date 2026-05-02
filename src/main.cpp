@@ -37,6 +37,54 @@ namespace
             return "Unknown";
         }
     }
+
+    std::unique_ptr<ISimulationBackend> createBackend(
+        BackendType backendType,
+        const AgentData &initialData,
+        const SimulationParams &params)
+    {
+        std::unique_ptr<ISimulationBackend> backend{};
+
+        switch (backendType)
+        {
+        case BackendType::CpuNaive:
+        {
+            backend = std::make_unique<CpuNaiveBackend>();
+            break;
+        }
+
+        case BackendType::CpuGrid:
+        {
+            backend = std::make_unique<CpuGridBackend>();
+            break;
+        }
+
+        default:
+        {
+            throw std::runtime_error{"Unsupported backend type for now."};
+        }
+        }
+
+        // Same state, different brain. Backend switching, but make it civilized.
+        backend->initialize(initialData, params);
+
+        return backend;
+    }
+
+    void printCpuGridDebugInfo(
+        const AgentData &initialAgents,
+        const SimulationParams &params)
+    {
+        CpuGridBackend gridDebugBackend{};
+        gridDebugBackend.initialize(initialAgents, params);
+
+        std::cout << "CPU Grid Debug Info:\n";
+        std::cout << "  Cells X: " << gridDebugBackend.getCellsX() << '\n';
+        std::cout << "  Cells Y: " << gridDebugBackend.getCellsY() << '\n';
+        std::cout << "  Total cells: " << gridDebugBackend.getCellCount() << '\n';
+        std::cout << "  Non-empty cells: " << gridDebugBackend.getNonEmptyCellCount() << '\n';
+        std::cout << "  Max agents in one cell: " << gridDebugBackend.getMaxAgentsInAnyCell() << '\n';
+    }
 }
 
 int main()
@@ -52,23 +100,16 @@ int main()
     constexpr uint32_t seed{42};
     AgentInitializer::initializeRandom(initialAgents, params, seed);
 
-    //CpuNaiveBackend backend{};
-    //backend.initialize(initialAgents, params);
-    
-    CpuGridBackend backend{};
-    backend.initialize(initialAgents, params);
-    
-    /*
-    CpuGridBackend gridDebugBackend{};
-    gridDebugBackend.initialize(initialAgents, params);
+    printCpuGridDebugInfo(initialAgents, params);
 
-    std::cout << "CPU Grid Debug Info:\n";
-    std::cout << "  Cells X: " << gridDebugBackend.getCellsX() << '\n';
-    std::cout << "  Cells Y: " << gridDebugBackend.getCellsY() << '\n';
-    std::cout << "  Total cells: " << gridDebugBackend.getCellCount() << '\n';
-    std::cout << "  Non-empty cells: " << gridDebugBackend.getNonEmptyCellCount() << '\n';
-    std::cout << "  Max agents in one cell: " << gridDebugBackend.getMaxAgentsInAnyCell() << '\n';
-    */
+    BackendType activeBackendType{BackendType::CpuNaive};
+
+    std::unique_ptr<ISimulationBackend> backend{
+        createBackend(
+            activeBackendType,
+            initialAgents,
+            params)};
+
     OpenGLViewer viewer{};
 
     const bool viewerInitialized{
@@ -90,8 +131,10 @@ int main()
     bool paused{false};
 
     std::cout << "Viewer initialized successfully.\n";
-    std::cout << "Active agent count: " << backend.getAgentCount() << '\n';
+    std::cout << "Active agent count: " << backend->getAgentCount() << '\n';
     std::cout << "Controls:\n";
+    std::cout << "  1     : switch to CPU Naive backend\n";
+    std::cout << "  2     : switch to CPU Grid backend\n";
     std::cout << "  SPACE : spawn " << SPAWN_COUNT << " agents\n";
     std::cout << "  R     : reset simulation\n";
     std::cout << "  P     : pause/resume\n";
@@ -102,30 +145,67 @@ int main()
         viewer.pollEvents();
         input.update(viewer);
 
-        if (input.wasPausePressed())
-        {
-            paused = !paused;
-
-            std::cout << (paused ? "Simulation paused.\n" : "Simulation resumed.\n");
-        }
-
         if (input.wasResetPressed())
         {
-            backend.initialize(initialAgents, params);
+            backend = createBackend(
+                activeBackendType,
+                initialAgents,
+                params);
+
             paused = false;
 
-            std::cout << "Simulation reset. Agent count: "
-                      << backend.getAgentCount()
+            std::cout << "Simulation reset. Backend: "
+                      << backendNameFromType(backend->getType())
+                      << ", agent count: "
+                      << backend->getAgentCount()
                       << '\n';
+        }
+
+        if (input.wasCpuNaiveBackendPressed())
+        {
+            if (backend->getType() != BackendType::CpuNaive)
+            {
+                const AgentData currentState{backend->getAgentData()};
+
+                activeBackendType = BackendType::CpuNaive;
+
+                backend = createBackend(
+                    activeBackendType,
+                    currentState,
+                    params);
+
+                std::cout << "Switched backend to CPU Naive. Agent count: "
+                          << backend->getAgentCount()
+                          << '\n';
+            }
+        }
+
+        if (input.wasCpuGridBackendPressed())
+        {
+            if (backend->getType() != BackendType::CpuGrid)
+            {
+                const AgentData currentState{backend->getAgentData()};
+
+                activeBackendType = BackendType::CpuGrid;
+
+                backend = createBackend(
+                    activeBackendType,
+                    currentState,
+                    params);
+
+                std::cout << "Switched backend to CPU Grid. Agent count: "
+                          << backend->getAgentCount()
+                          << '\n';
+            }
         }
 
         if (input.wasSpawnPressed())
         {
-            const int spawned{backend.spawnAgents(SPAWN_COUNT)};
+            const int spawned{backend->spawnAgents(SPAWN_COUNT)};
 
             std::cout << "Spawn requested: " << SPAWN_COUNT
                       << ", spawned: " << spawned
-                      << ", total agents: " << backend.getAgentCount()
+                      << ", total agents: " << backend->getAgentCount()
                       << '\n';
         }
 
@@ -136,7 +216,7 @@ int main()
         if (!paused)
         {
             CpuTimer simulationTimer{};
-            backend.step(params.deltaTime);
+            backend->step(params.deltaTime);
             simulationTimeMs = simulationTimer.elapsedMilliseconds();
         }
 
@@ -144,7 +224,7 @@ int main()
 
         CpuTimer renderTimer{};
         viewer.beginFrame();
-        viewer.renderAgents(backend.getAgentData());
+        viewer.renderAgents(backend->getAgentData());
         viewer.endFrame();
         const double renderTimeMs{renderTimer.elapsedMilliseconds()};
         frameStats.setRenderTimeMs(renderTimeMs);
@@ -159,8 +239,8 @@ int main()
             const std::string title{
                 frameStats.buildWindowTitle(
                     applicationName,
-                    backendNameFromType(backend.getType()),
-                    backend.getAgentCount())};
+                    backendNameFromType(backend->getType()),
+                    backend->getAgentCount())};
 
             viewer.setWindowTitle(title.c_str());
         }

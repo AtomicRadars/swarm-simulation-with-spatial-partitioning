@@ -7,9 +7,10 @@ enum class ViewerKey
 {
     Space,
     R,
-    P
+    P,
+    Num1,
+    Num2
 };
-
 
 struct GLFWwindow;
 

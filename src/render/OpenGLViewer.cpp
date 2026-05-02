@@ -10,17 +10,23 @@ namespace
     {
         switch (key)
         {
-            case ViewerKey::Space:
-                return GLFW_KEY_SPACE;
+        case ViewerKey::Space:
+            return GLFW_KEY_SPACE;
 
-            case ViewerKey::R:
-                return GLFW_KEY_R;
+        case ViewerKey::R:
+            return GLFW_KEY_R;
 
-            case ViewerKey::P:
-                return GLFW_KEY_P;
+        case ViewerKey::P:
+            return GLFW_KEY_P;
 
-            default:
-                return GLFW_KEY_UNKNOWN;
+        case ViewerKey::Num1:
+            return GLFW_KEY_1;
+
+        case ViewerKey::Num2:
+            return GLFW_KEY_2;
+
+        default:
+            return GLFW_KEY_UNKNOWN;
         }
     }
 }
@@ -33,9 +39,8 @@ OpenGLViewer::~OpenGLViewer()
 bool OpenGLViewer::initialize(
     int windowWidth,
     int windowHeight,
-    const char* title,
-    const SimulationParams& params
-)
+    const char *title,
+    const SimulationParams &params)
 {
     windowWidth_ = windowWidth;
     windowHeight_ = windowHeight;
@@ -54,8 +59,7 @@ bool OpenGLViewer::initialize(
         windowHeight_,
         title,
         nullptr,
-        nullptr
-    );
+        nullptr);
 
     if (window_ == nullptr)
     {
@@ -96,7 +100,7 @@ void OpenGLViewer::beginFrame()
     glLoadIdentity();
 }
 
-void OpenGLViewer::renderAgents(const AgentData& agents)
+void OpenGLViewer::renderAgents(const AgentData &agents)
 {
     glPointSize(3.0f);
 
@@ -147,8 +151,7 @@ void OpenGLViewer::setupProjection()
         0.0,
         static_cast<double>(worldHeight_),
         -1.0,
-        1.0
-    );
+        1.0);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -172,7 +175,7 @@ void OpenGLViewer::shutdown()
     initialized_ = false;
 }
 
-void OpenGLViewer::setWindowTitle(const char* title)
+void OpenGLViewer::setWindowTitle(const char *title)
 {
     if (window_ != nullptr)
     {
