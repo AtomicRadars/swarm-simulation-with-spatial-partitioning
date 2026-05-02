@@ -89,10 +89,10 @@ bool AgentRenderer::initialize(
     );
 
     glVertexAttribPointer(
-        0, // attribute location 0
+        0, // attribute location 0 (position vbo)
         2, // every vertex consists of 2 float (x,y)
         GL_FLOAT, 
-        GL_FALSE, 
+        GL_FALSE, // no normalization for floats
         static_cast<GLsizei>(2 * sizeof(float)), // stride
         reinterpret_cast<void*>(0) // offset 0
     );
