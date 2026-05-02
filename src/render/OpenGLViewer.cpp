@@ -1,6 +1,8 @@
 #include "render/OpenGLViewer.hpp"
 
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <vector>
 
 #include <iostream>
 
@@ -70,6 +72,24 @@ bool OpenGLViewer::initialize(
 
     glfwMakeContextCurrent(window_);
 
+    if (glewInit() != GLEW_OK)
+    {
+        std::cerr << "Failed to initialize GLEW.\n";
+        return false;
+    }
+
+    glGenVertexArrays(1, &vao_);
+    glBindVertexArray(vao_);
+
+    glGenBuffers(1, &vbo_);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(2, GL_FLOAT, 0, nullptr);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
     // Enable VSync for now, so the application does not run unnecessarily fast.
     glfwSwapInterval(1);
 
@@ -102,16 +122,25 @@ void OpenGLViewer::beginFrame()
 
 void OpenGLViewer::renderAgents(const AgentData &agents)
 {
+    if (agents.count == 0) return;
+
     glPointSize(3.0f);
 
-    glBegin(GL_POINTS);
-
+    std::vector<float> positions(agents.count * 2);
     for (int i = 0; i < agents.count; ++i)
     {
-        glVertex2f(agents.posX[i], agents.posY[i]);
+        positions.at(i * 2)     = agents.posX[i];
+        positions.at(i * 2 + 1) = agents.posY[i];
     }
 
-    glEnd();
+    glBindVertexArray(vao_);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+    glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(float), positions.data(), GL_STREAM_DRAW);
+
+    glDrawArrays(GL_POINTS, 0, agents.count);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void OpenGLViewer::endFrame()
@@ -162,6 +191,18 @@ void OpenGLViewer::shutdown()
     if (!initialized_)
     {
         return;
+    }
+
+    if (vao_ != 0)
+    {
+        glDeleteVertexArrays(1, &vao_);
+        vao_ = 0;
+    }
+
+    if (vbo_ != 0)
+    {
+        glDeleteBuffers(1, &vbo_);
+        vbo_ = 0;
     }
 
     if (window_ != nullptr)

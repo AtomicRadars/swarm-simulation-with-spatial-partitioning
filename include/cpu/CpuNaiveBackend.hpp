@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/SimulationBackend.hpp"
+#include <cstdint>
 
 class CpuNaiveBackend final : public ISimulationBackend
 {

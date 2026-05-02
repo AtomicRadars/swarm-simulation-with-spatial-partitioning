@@ -25,6 +25,17 @@ if(NOT glfw3_FOUND)
     FetchContent_MakeAvailable(glfw)
 endif()
 
+find_package(GLEW QUIET)
+if(NOT GLEW_FOUND)
+    message(STATUS "GLEW package was not found. Fetching GLEW with FetchContent...")
+    FetchContent_Declare(
+        glew
+        GIT_REPOSITORY https://github.com/nigels-com/glew.git
+        GIT_TAG glew-2.3.1
+    )
+    FetchContent_MakeAvailable(glew)
+endif()
+
 find_package(OpenGL REQUIRED)
 
 add_executable(SwarmCudaProject
@@ -47,4 +58,5 @@ target_link_libraries(SwarmCudaProject
     PRIVATE
         OpenGL::GL
         glfw
+        GLEW::GLEW
 )

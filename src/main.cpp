@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <memory>
 
 namespace
 {
@@ -144,6 +145,12 @@ int main()
     {
         viewer.pollEvents();
         input.update(viewer);
+
+        if (input.wasPausePressed())
+        {
+            paused = !paused;
+            std::cout << (paused ? "Simulation paused.\n" : "Simulation resumed.\n");
+        }
 
         if (input.wasResetPressed())
         {

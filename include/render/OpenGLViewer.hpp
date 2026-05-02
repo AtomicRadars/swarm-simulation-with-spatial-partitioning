@@ -56,4 +56,7 @@ private:
     float worldHeight_{1000.0f};
 
     bool initialized_{false};
+
+    unsigned int vao_{0};
+    unsigned int vbo_{0};
 };
