@@ -70,12 +70,16 @@ bool OpenGLViewer::initialize(
 
     glfwMakeContextCurrent(window_);
 
+    /*
     // Enable VSync for now, so the application does not run unnecessarily fast.
     glfwSwapInterval(1);
+    */
+
+    // VSync off for now: we want to see backend speed honestly.
+    // GPU can chill later.
+    glfwSwapInterval(0);
 
     setupProjection();
-
-    glPointSize(3.0f);
 
     initialized_ = true;
     return true;
@@ -98,20 +102,6 @@ void OpenGLViewer::beginFrame()
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-}
-
-void OpenGLViewer::renderAgents(const AgentData &agents)
-{
-    glPointSize(3.0f);
-
-    glBegin(GL_POINTS);
-
-    for (int i = 0; i < agents.count; ++i)
-    {
-        glVertex2f(agents.posX[i], agents.posY[i]);
-    }
-
-    glEnd();
 }
 
 void OpenGLViewer::endFrame()

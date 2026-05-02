@@ -1,7 +1,8 @@
 #pragma once
 
-#include "core/AgentData.hpp"
 #include "core/SimulationParams.hpp"
+
+struct GLFWwindow;
 
 enum class ViewerKey
 {
@@ -11,8 +12,6 @@ enum class ViewerKey
     Num1,
     Num2
 };
-
-struct GLFWwindow;
 
 class OpenGLViewer
 {
@@ -33,7 +32,6 @@ public:
     bool shouldClose() const;
 
     void beginFrame();
-    void renderAgents(const AgentData& agents);
     void endFrame();
 
     void pollEvents();

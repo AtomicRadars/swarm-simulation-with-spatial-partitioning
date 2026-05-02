@@ -3,13 +3,17 @@
 #include "benchmark/FrameStats.hpp"
 #include "core/AgentData.hpp"
 #include "core/AgentInitializer.hpp"
+#include "core/SimulationBackend.hpp"
 #include "core/SimulationParams.hpp"
-#include "cpu/CpuNaiveBackend.hpp"
 #include "cpu/CpuGridBackend.hpp"
+#include "cpu/CpuNaiveBackend.hpp"
+#include "render/AgentRenderer.hpp"
 #include "render/OpenGLViewer.hpp"
 
 #include <cstdint>
 #include <iostream>
+#include <memory>
+#include <stdexcept>
 #include <string>
 
 namespace
@@ -125,6 +129,9 @@ int main()
         return 1;
     }
 
+    AgentRenderer agentRenderer{};
+    agentRenderer.initialize(3.0f);
+
     InputController input{};
     FrameStats frameStats{};
 
@@ -224,8 +231,12 @@ int main()
 
         CpuTimer renderTimer{};
         viewer.beginFrame();
-        viewer.renderAgents(backend->getAgentData());
+        // Renderer handles drawing now.
+        // Viewer has enough adult responsibilities with window/context stuff.
+        agentRenderer.render(backend->getAgentData());
+
         viewer.endFrame();
+
         const double renderTimeMs{renderTimer.elapsedMilliseconds()};
         frameStats.setRenderTimeMs(renderTimeMs);
 
