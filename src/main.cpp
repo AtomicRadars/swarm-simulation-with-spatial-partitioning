@@ -9,6 +9,7 @@
 #include "cpu/CpuNaiveBackend.hpp"
 #include "render/AgentRenderer.hpp"
 #include "render/OpenGLViewer.hpp"
+#include "gpu/CudaSmokeTest.hpp"
 
 #include <cstdint>
 #include <iostream>
@@ -95,6 +96,12 @@ namespace
 int main()
 {
     std::cout << "Swarm Simulation CUDA Project started.\n";
+
+    if (!runCudaSmokeTest())
+    {
+        std::cerr << "CUDA smoke test failed. Exiting.\n";
+        return 1;
+    }
 
     SimulationParams params{};
 
