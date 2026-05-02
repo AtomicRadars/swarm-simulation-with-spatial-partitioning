@@ -29,7 +29,7 @@ int main()
         viewer.initialize(
             1280,
             720,
-            "CPU Naive Simple Movement - Swarm Simulation",
+            "CPU Naive Boids - Swarm Simulation",
             params
         )
     };
