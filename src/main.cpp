@@ -1,3 +1,4 @@
+#include "app/InputController.hpp"
 #include "benchmark/CpuTimer.hpp"
 #include "benchmark/FrameStats.hpp"
 #include "core/AgentData.hpp"
@@ -12,6 +13,9 @@
 
 namespace
 {
+
+    constexpr int SPAWN_COUNT{500};
+
     const char *backendNameFromType(BackendType backendType)
     {
         switch (backendType)
@@ -65,19 +69,62 @@ int main()
         return 1;
     }
 
+    InputController input{};
     FrameStats frameStats{};
+
+    bool paused{false};
 
     std::cout << "Viewer initialized successfully.\n";
     std::cout << "Active agent count: " << backend.getAgentCount() << '\n';
-    std::cout << "Press ESC to exit.\n";
+    std::cout << "Controls:\n";
+    std::cout << "  SPACE : spawn " << SPAWN_COUNT << " agents\n";
+    std::cout << "  R     : reset simulation\n";
+    std::cout << "  P     : pause/resume\n";
+    std::cout << "  ESC   : exit\n";
 
     while (!viewer.shouldClose())
     {
+        viewer.pollEvents();
+        input.update(viewer);
+
+        if (input.wasPausePressed())
+        {
+            paused = !paused;
+
+            std::cout << (paused ? "Simulation paused.\n" : "Simulation resumed.\n");
+        }
+
+        if (input.wasResetPressed())
+        {
+            backend.initialize(initialAgents, params);
+            paused = false;
+
+            std::cout << "Simulation reset. Agent count: "
+                      << backend.getAgentCount()
+                      << '\n';
+        }
+
+        if (input.wasSpawnPressed())
+        {
+            const int spawned{backend.spawnAgents(SPAWN_COUNT)};
+
+            std::cout << "Spawn requested: " << SPAWN_COUNT
+                      << ", spawned: " << spawned
+                      << ", total agents: " << backend.getAgentCount()
+                      << '\n';
+        }
+
         frameStats.beginFrame();
 
-        CpuTimer simulationTimer{};
-        backend.step(params.deltaTime);
-        const double simulationTimeMs{simulationTimer.elapsedMilliseconds()};
+        double simulationTimeMs{0.0};
+
+        if (!paused)
+        {
+            CpuTimer simulationTimer{};
+            backend.step(params.deltaTime);
+            simulationTimeMs = simulationTimer.elapsedMilliseconds();
+        }
+
         frameStats.setSimulationTimeMs(simulationTimeMs);
 
         CpuTimer renderTimer{};
@@ -87,15 +134,16 @@ int main()
         const double renderTimeMs{renderTimer.elapsedMilliseconds()};
         frameStats.setRenderTimeMs(renderTimeMs);
 
-        viewer.pollEvents();
-
         frameStats.endFrame();
 
         if (frameStats.shouldUpdateTitle())
         {
+            const std::string applicationName{
+                paused ? "Swarm Simulation [PAUSED]" : "Swarm Simulation"};
+
             const std::string title{
                 frameStats.buildWindowTitle(
-                    "Swarm Simulation",
+                    applicationName,
                     backendNameFromType(backend.getType()),
                     backend.getAgentCount())};
 

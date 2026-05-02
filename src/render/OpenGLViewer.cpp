@@ -4,6 +4,27 @@
 
 #include <iostream>
 
+namespace
+{
+    int toGlfwKey(ViewerKey key)
+    {
+        switch (key)
+        {
+            case ViewerKey::Space:
+                return GLFW_KEY_SPACE;
+
+            case ViewerKey::R:
+                return GLFW_KEY_R;
+
+            case ViewerKey::P:
+                return GLFW_KEY_P;
+
+            default:
+                return GLFW_KEY_UNKNOWN;
+        }
+    }
+}
+
 OpenGLViewer::~OpenGLViewer()
 {
     shutdown();
@@ -157,4 +178,14 @@ void OpenGLViewer::setWindowTitle(const char* title)
     {
         glfwSetWindowTitle(window_, title);
     }
+}
+
+bool OpenGLViewer::isKeyPressed(ViewerKey key) const
+{
+    if (window_ == nullptr)
+    {
+        return false;
+    }
+
+    return glfwGetKey(window_, toGlfwKey(key)) == GLFW_PRESS;
 }

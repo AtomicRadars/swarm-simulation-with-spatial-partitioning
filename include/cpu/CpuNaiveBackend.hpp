@@ -14,6 +14,8 @@ public:
 
     void step(float dt) override;
 
+    int spawnAgents(int count) override;
+
     int getAgentCount() const override;
 
     BackendType getType() const override;
@@ -21,7 +23,7 @@ public:
     const AgentData &getAgentData() const override;
 
 private:
-    void updateAgentSimpleMotion(int index, float dt);
+    void updateAgentSimpleMotion(int index, float dt); /* not gonna be used, trivial simple linear motion on a straight line */
     void updateAgentBoids(int index, float dt);
 
     void applyWrapAround(float &x, float &y) const;
@@ -38,4 +40,6 @@ private:
 private:
     AgentData agents_{};
     SimulationParams params_{};
+
+    uint32_t nextSpawnSeed_{1000};
 };

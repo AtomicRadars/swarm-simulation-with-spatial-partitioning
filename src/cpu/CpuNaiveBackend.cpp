@@ -1,5 +1,8 @@
 #include "cpu/CpuNaiveBackend.hpp"
 
+#include "core/AgentInitializer.hpp"
+
+#include <algorithm>
 #include <cmath>
 #include <stdexcept>
 
@@ -61,6 +64,8 @@ void CpuNaiveBackend::initialize(
 
     agents_ = initialData;
     params_ = params;
+
+    nextSpawnSeed_ = 1000;
 }
 
 void CpuNaiveBackend::step(float dt)
@@ -76,6 +81,40 @@ void CpuNaiveBackend::step(float dt)
     }
 
     agents_.swapBuffers();
+}
+
+int CpuNaiveBackend::spawnAgents(int count)
+{
+    if (count <= 0)
+    {
+        return 0;
+    }
+
+    const int remainingCapacity{agents_.capacity - agents_.count};
+
+    if (remainingCapacity <= 0)
+    {
+        return 0;
+    }
+
+    const int actualSpawnCount{std::min(count, remainingCapacity)};
+
+    const int beginIndex{agents_.count};
+    const int endIndex{agents_.count + actualSpawnCount};
+
+    AgentInitializer::initializeRangeRandom(
+        agents_,
+        params_,
+        beginIndex,
+        endIndex,
+        nextSpawnSeed_
+    );
+
+    agents_.setCount(endIndex);
+
+    ++nextSpawnSeed_;
+
+    return actualSpawnCount;
 }
 
 int CpuNaiveBackend::getAgentCount() const

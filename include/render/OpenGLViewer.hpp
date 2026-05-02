@@ -3,6 +3,14 @@
 #include "core/AgentData.hpp"
 #include "core/SimulationParams.hpp"
 
+enum class ViewerKey
+{
+    Space,
+    R,
+    P
+};
+
+
 struct GLFWwindow;
 
 class OpenGLViewer
@@ -30,6 +38,8 @@ public:
     void pollEvents();
 
     void setWindowTitle(const char* title);
+
+    bool isKeyPressed(ViewerKey key) const;
 
 private:
     void setupProjection();

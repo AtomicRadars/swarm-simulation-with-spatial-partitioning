@@ -29,6 +29,7 @@ find_package(OpenGL REQUIRED)
 
 add_executable(SwarmCudaProject
     src/main.cpp
+    src/app/InputController.cpp
     src/core/AgentData.cpp
     src/core/AgentInitializer.cpp
     src/cpu/CpuNaiveBackend.cpp

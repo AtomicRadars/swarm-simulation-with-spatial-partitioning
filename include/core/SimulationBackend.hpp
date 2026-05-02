@@ -17,6 +17,8 @@ public:
 
     virtual void step(float dt) = 0;
 
+    virtual int spawnAgents(int count) = 0;
+
     virtual int getAgentCount() const = 0;
 
     virtual BackendType getType() const = 0;
