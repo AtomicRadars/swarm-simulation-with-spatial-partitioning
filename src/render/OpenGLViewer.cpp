@@ -102,7 +102,7 @@ void OpenGLViewer::renderAgents(const AgentData& agents)
 
     glBegin(GL_POINTS);
 
-    for (int i{0}; i < agents.count; ++i)
+    for (int i = 0; i < agents.count; ++i)
     {
         glVertex2f(agents.posX[i], agents.posY[i]);
     }

@@ -35,6 +35,7 @@ add_executable(SwarmCudaProject
     src/cpu/CpuNaiveBackend.cpp
     src/render/OpenGLViewer.cpp
     src/benchmark/FrameStats.cpp
+    src/cpu/CpuGridBackend.cpp
 )
 
 target_include_directories(SwarmCudaProject

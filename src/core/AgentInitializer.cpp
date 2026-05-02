@@ -18,7 +18,7 @@ namespace
 void AgentInitializer::initializeRandom(
     AgentData &agents,
     const SimulationParams &params,
-    std::uint32_t seed)
+    uint32_t seed)
 {
 
     initializeRangeRandom(
@@ -65,7 +65,7 @@ void AgentInitializer::initializeRangeRandom(
     const SimulationParams &params,
     int beginIndex,
     int endIndex,
-    std::uint32_t seed)
+    uint32_t seed)
 {
     if (beginIndex < 0)
     {

@@ -5,6 +5,7 @@
 #include "core/AgentInitializer.hpp"
 #include "core/SimulationParams.hpp"
 #include "cpu/CpuNaiveBackend.hpp"
+#include "cpu/CpuGridBackend.hpp"
 #include "render/OpenGLViewer.hpp"
 
 #include <cstdint>
@@ -53,6 +54,16 @@ int main()
 
     CpuNaiveBackend backend{};
     backend.initialize(initialAgents, params);
+
+    CpuGridBackend gridDebugBackend{};
+    gridDebugBackend.initialize(initialAgents, params);
+
+    std::cout << "CPU Grid Debug Info:\n";
+    std::cout << "  Cells X: " << gridDebugBackend.getCellsX() << '\n';
+    std::cout << "  Cells Y: " << gridDebugBackend.getCellsY() << '\n';
+    std::cout << "  Total cells: " << gridDebugBackend.getCellCount() << '\n';
+    std::cout << "  Non-empty cells: " << gridDebugBackend.getNonEmptyCellCount() << '\n';
+    std::cout << "  Max agents in one cell: " << gridDebugBackend.getMaxAgentsInAnyCell() << '\n';
 
     OpenGLViewer viewer{};
 
