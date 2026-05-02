@@ -9,6 +9,7 @@
 #include "cpu/CpuNaiveBackend.hpp"
 #include "render/AgentRenderer.hpp"
 #include "render/OpenGLViewer.hpp"
+#include "render/Shader.hpp"
 
 #include <cstdint>
 #include <iostream>
@@ -89,6 +90,28 @@ namespace
         std::cout << "  Non-empty cells: " << gridDebugBackend.getNonEmptyCellCount() << '\n';
         std::cout << "  Max agents in one cell: " << gridDebugBackend.getMaxAgentsInAnyCell() << '\n';
     }
+
+    constexpr const char *TEST_VERTEX_SHADER_SOURCE{
+        R"(
+            #version 330 compatibility
+
+            void main()
+            {
+                gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+            }
+        )"};
+
+    constexpr const char *TEST_FRAGMENT_SHADER_SOURCE{
+        R"(
+            #version 330 compatibility
+
+            out vec4 FragColor;
+
+            void main()
+            {
+                FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            }
+        )"};
 }
 
 int main()
@@ -128,6 +151,18 @@ int main()
         std::cerr << "Viewer initialization failed.\n";
         return 1;
     }
+
+    Shader shaderSmokeTest{};
+
+    if (!shaderSmokeTest.loadFromSource(
+            TEST_VERTEX_SHADER_SOURCE,
+            TEST_FRAGMENT_SHADER_SOURCE))
+    {
+        std::cerr << "Shader smoke test failed.\n";
+        return 1;
+    }
+
+    std::cout << "Shader smoke test passed.\n";
 
     AgentRenderer agentRenderer{};
     agentRenderer.initialize(3.0f);
