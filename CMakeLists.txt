@@ -5,14 +5,43 @@ project(SwarmCudaProject LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include(FetchContent)
+
+find_package(glfw3 CONFIG QUIET)
+
+if(NOT glfw3_FOUND)
+    message(STATUS "glfw3 package was not found. Fetching GLFW with FetchContent...")
+
+    FetchContent_Declare(
+        glfw
+        GIT_REPOSITORY https://github.com/glfw/glfw.git
+        GIT_TAG 3.4
+    )
+
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+    FetchContent_MakeAvailable(glfw)
+endif()
+
+find_package(OpenGL REQUIRED)
+
 add_executable(SwarmCudaProject
     src/main.cpp
     src/core/AgentData.cpp
     src/core/AgentInitializer.cpp
     src/cpu/CpuNaiveBackend.cpp
+    src/render/OpenGLViewer.cpp
 )
 
 target_include_directories(SwarmCudaProject
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(SwarmCudaProject
+    PRIVATE
+        OpenGL::GL
+        glfw
 )

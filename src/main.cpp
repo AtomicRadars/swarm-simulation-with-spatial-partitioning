@@ -2,31 +2,10 @@
 #include "core/AgentInitializer.hpp"
 #include "core/SimulationParams.hpp"
 #include "cpu/CpuNaiveBackend.hpp"
+#include "render/OpenGLViewer.hpp"
 
 #include <cstdint>
 #include <iostream>
-
-namespace
-{
-    void printFirstAgents(const AgentData& agents, int printCount)
-    {
-        const int actualPrintCount{
-            printCount < agents.count ? printCount : agents.count
-        };
-
-        for (int i{0}; i < actualPrintCount; ++i)
-        {
-            std::cout << "Agent " << i
-                      << " | pos=("
-                      << agents.posX[i] << ", "
-                      << agents.posY[i] << ")"
-                      << " | vel=("
-                      << agents.velX[i] << ", "
-                      << agents.velY[i] << ")"
-                      << '\n';
-        }
-    }
-}
 
 int main()
 {
@@ -44,31 +23,39 @@ int main()
     CpuNaiveBackend backend{};
     backend.initialize(initialAgents, params);
 
-    std::cout << "World size: "
-              << params.worldWidth
-              << " x "
-              << params.worldHeight
-              << '\n';
+    OpenGLViewer viewer{};
 
-    std::cout << "Agent capacity: "
-              << initialAgents.capacity
-              << '\n';
+    const bool viewerInitialized{
+        viewer.initialize(
+            1280,
+            720,
+            "CPU Naive Simple Movement - Swarm Simulation",
+            params
+        )
+    };
 
-    std::cout << "Active agent count: "
-              << backend.getAgentCount()
-              << '\n';
+    if (!viewerInitialized)
+    {
+        std::cerr << "Viewer initialization failed.\n";
+        return 1;
+    }
 
-    std::cout << "Current backend: CPU Naive\n";
+    std::cout << "Viewer initialized successfully.\n";
+    std::cout << "Active agent count: " << backend.getAgentCount() << '\n';
+    std::cout << "Press ESC to exit.\n";
 
-    std::cout << "\nBefore simulation step:\n";
-    printFirstAgents(backend.getAgentData(), 5);
+    while (!viewer.shouldClose())
+    {
+        backend.step(params.deltaTime);
 
-    backend.step(params.deltaTime);
+        viewer.beginFrame();
+        viewer.renderAgents(backend.getAgentData());
+        viewer.endFrame();
 
-    std::cout << "\nAfter one simulation step:\n";
-    printFirstAgents(backend.getAgentData(), 5);
+        viewer.pollEvents();
+    }
 
-    std::cout << "\nCPU naive backend simple movement test is working.\n";
+    std::cout << "Application closed.\n";
 
     return 0;
 }
