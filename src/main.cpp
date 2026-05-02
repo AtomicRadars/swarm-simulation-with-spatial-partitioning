@@ -10,6 +10,7 @@
 #include "render/AgentRenderer.hpp"
 #include "render/OpenGLViewer.hpp"
 #include "gpu/CudaSmokeTest.hpp"
+#include "gpu/CudaAgentData.hpp"
 
 #include <cstdint>
 #include <iostream>
@@ -111,6 +112,47 @@ int main()
 
     constexpr uint32_t seed{42};
     AgentInitializer::initializeRandom(initialAgents, params, seed);
+
+    {
+        CudaAgentData cudaAgentData{};
+
+        if (!cudaAgentData.allocate(params.maxAgentCapacity))
+        {
+            std::cerr << "CudaAgentData allocation test failed.\n";
+            return 1;
+        }
+
+        if (!cudaAgentData.copyFromHost(initialAgents))
+        {
+            std::cerr << "CudaAgentData host-to-device copy test failed.\n";
+            return 1;
+        }
+
+        AgentData copiedBackAgents{};
+        copiedBackAgents.resize(params.maxAgentCapacity);
+
+        if (!cudaAgentData.copyToHost(copiedBackAgents))
+        {
+            std::cerr << "CudaAgentData device-to-host copy test failed.\n";
+            return 1;
+        }
+
+        const bool firstAgentMatches{
+            copiedBackAgents.count == initialAgents.count &&
+            copiedBackAgents.posX[0] == initialAgents.posX[0] &&
+            copiedBackAgents.posY[0] == initialAgents.posY[0] &&
+            copiedBackAgents.velX[0] == initialAgents.velX[0] &&
+            copiedBackAgents.velY[0] == initialAgents.velY[0]};
+
+        if (!firstAgentMatches)
+        {
+            std::cerr << "CudaAgentData round-trip test failed.\n";
+            return 1;
+        }
+
+        std::cout << "CudaAgentData round-trip test passed. "
+                  << "First agent survived the GPU vacation.\n";
+    }
 
     printCpuGridDebugInfo(initialAgents, params);
 
