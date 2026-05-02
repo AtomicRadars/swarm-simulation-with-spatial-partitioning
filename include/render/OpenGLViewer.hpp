@@ -1,7 +1,5 @@
 #pragma once
 
-#include "core/SimulationParams.hpp"
-
 struct GLFWwindow;
 
 enum class ViewerKey
@@ -25,8 +23,7 @@ public:
     bool initialize(
         int windowWidth,
         int windowHeight,
-        const char* title,
-        const SimulationParams& params
+        const char* title
     );
 
     bool shouldClose() const;
@@ -41,7 +38,6 @@ public:
     bool isKeyPressed(ViewerKey key) const;
 
 private:
-    void setupProjection();
     void shutdown();
 
 private:
@@ -49,9 +45,6 @@ private:
 
     int windowWidth_{1280};
     int windowHeight_{720};
-
-    float worldWidth_{1000.0f};
-    float worldHeight_{1000.0f};
 
     bool initialized_{false};
 };

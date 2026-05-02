@@ -83,6 +83,20 @@ void Shader::use() const
     glUseProgram(programId_);
 }
 
+void Shader::setUniform2f(const char* name, float x, float y) const
+{
+    const int location{glGetUniformLocation(programId_, name)};
+
+    if (location == -1)
+    {
+        // Uniform not found. Could be optimized out or just misspelled.
+        // OpenGL silently judges us, so we log nothing for now.
+        return;
+    }
+
+    glUniform2f(location, x, y);
+}
+
 unsigned int Shader::getProgramId() const
 {
     return programId_;

@@ -40,20 +40,22 @@ OpenGLViewer::~OpenGLViewer()
 bool OpenGLViewer::initialize(
     int windowWidth,
     int windowHeight,
-    const char *title,
-    const SimulationParams &params)
+    const char *title)
 {
     windowWidth_ = windowWidth;
     windowHeight_ = windowHeight;
-
-    worldWidth_ = params.worldWidth;
-    worldHeight_ = params.worldHeight;
 
     if (!glfwInit())
     {
         std::cerr << "Failed to initialize GLFW.\n";
         return false;
     }
+
+    // We still use compatibility profile for now.
+    // Core profile can wait until all old OpenGL ghosts are gone.
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 
     window_ = glfwCreateWindow(
         windowWidth_,
@@ -72,7 +74,7 @@ bool OpenGLViewer::initialize(
     glfwMakeContextCurrent(window_);
 
     // OpenGL context first, function pointers second.
-    // GLAD loads OpenGL functions' addresses. 
+    // GLAD loads OpenGL functions' addresses.
     // But to load the adresses, bro needs a valid OpenGL context.
     // Yes, we found out that order matters. Seems OpenGL likes drama.
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
@@ -96,7 +98,7 @@ bool OpenGLViewer::initialize(
     // GPU can chill later.
     glfwSwapInterval(0);
 
-    setupProjection();
+    glViewport(0, 0, windowWidth_, windowHeight_);
 
     initialized_ = true;
     return true;
@@ -117,8 +119,10 @@ void OpenGLViewer::beginFrame()
     glClearColor(0.02f, 0.02f, 0.03f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    /*
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    */
 }
 
 void OpenGLViewer::endFrame()
@@ -140,28 +144,6 @@ void OpenGLViewer::pollEvents()
             glfwSetWindowShouldClose(window_, GLFW_TRUE);
         }
     }
-}
-
-void OpenGLViewer::setupProjection()
-{
-    glViewport(0, 0, windowWidth_, windowHeight_);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    // World coordinate system:
-    // x: 0 -> worldWidth
-    // y: 0 -> worldHeight
-    glOrtho(
-        0.0,
-        static_cast<double>(worldWidth_),
-        0.0,
-        static_cast<double>(worldHeight_),
-        -1.0,
-        1.0);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
 }
 
 void OpenGLViewer::shutdown()

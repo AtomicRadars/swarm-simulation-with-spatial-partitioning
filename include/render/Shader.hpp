@@ -22,6 +22,8 @@ public:
 
     void use() const;
 
+    void setUniform2f(const char* name, float x, float y) const;
+
     unsigned int getProgramId() const;
 
 private:
