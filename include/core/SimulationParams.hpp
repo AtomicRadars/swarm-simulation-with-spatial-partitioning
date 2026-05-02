@@ -22,5 +22,7 @@ struct SimulationParams
     int initialAgentCount{1000};
     int maxAgentCapacity{100000};
 
+    // 3x3 cell control works with assumption: gridCellSize >= neighborRadius
+    // Because if cell size is smaller than the greatest interaction radius, 3x3 cell may not be enough
     float gridCellSize{40.0f};
 };

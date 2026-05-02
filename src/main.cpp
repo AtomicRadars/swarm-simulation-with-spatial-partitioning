@@ -52,9 +52,13 @@ int main()
     constexpr uint32_t seed{42};
     AgentInitializer::initializeRandom(initialAgents, params, seed);
 
-    CpuNaiveBackend backend{};
+    //CpuNaiveBackend backend{};
+    //backend.initialize(initialAgents, params);
+    
+    CpuGridBackend backend{};
     backend.initialize(initialAgents, params);
-
+    
+    /*
     CpuGridBackend gridDebugBackend{};
     gridDebugBackend.initialize(initialAgents, params);
 
@@ -64,7 +68,7 @@ int main()
     std::cout << "  Total cells: " << gridDebugBackend.getCellCount() << '\n';
     std::cout << "  Non-empty cells: " << gridDebugBackend.getNonEmptyCellCount() << '\n';
     std::cout << "  Max agents in one cell: " << gridDebugBackend.getMaxAgentsInAnyCell() << '\n';
-
+    */
     OpenGLViewer viewer{};
 
     const bool viewerInitialized{
