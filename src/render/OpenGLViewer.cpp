@@ -1,5 +1,6 @@
 #include "render/OpenGLViewer.hpp"
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <iostream>
@@ -69,6 +70,22 @@ bool OpenGLViewer::initialize(
     }
 
     glfwMakeContextCurrent(window_);
+
+    // OpenGL context first, function pointers second.
+    // GLAD loads OpenGL functions' addresses. 
+    // But to load the adresses, bro needs a valid OpenGL context.
+    // Yes, we found out that order matters. Seems OpenGL likes drama.
+    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
+    {
+        std::cerr << "Failed to initialize GLAD.\n";
+
+        glfwDestroyWindow(window_);
+        window_ = nullptr;
+
+        glfwTerminate();
+
+        return false;
+    }
 
     /*
     // Enable VSync for now, so the application does not run unnecessarily fast.
