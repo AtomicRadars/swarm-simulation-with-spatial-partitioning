@@ -8,6 +8,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
+# CUDA 13.2 does not officially support MSVC 19.50+ (VS 2026).
+# This flag bypasses the host-compiler version check.
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -allow-unsupported-compiler")
+
 include(FetchContent)
 
 find_package(glfw3 CONFIG QUIET)
