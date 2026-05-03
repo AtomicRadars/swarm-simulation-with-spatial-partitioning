@@ -8,6 +8,7 @@ void InputController::update(const OpenGLViewer &viewer)
     previousCpuNaiveBackendPressed_ = currentCpuNaiveBackendPressed_;
     previousCpuGridBackendPressed_ = currentCpuGridBackendPressed_;
     previousCudaNaiveBackendPressed_ = currentCudaNaiveBackendPressed_;
+    previousCudaGridBackendPressed_ = currentCudaGridBackendPressed_;
     previousLoggingTogglePressed_ = currentLoggingTogglePressed_;
 
     currentSpawnPressed_ = viewer.isKeyPressed(ViewerKey::Space);
@@ -16,6 +17,7 @@ void InputController::update(const OpenGLViewer &viewer)
     currentCpuNaiveBackendPressed_ = viewer.isKeyPressed(ViewerKey::Num1);
     currentCpuGridBackendPressed_ = viewer.isKeyPressed(ViewerKey::Num2);
     currentCudaNaiveBackendPressed_ = viewer.isKeyPressed(ViewerKey::Num3);
+    currentCudaGridBackendPressed_ = viewer.isKeyPressed(ViewerKey::Num4);
     currentLoggingTogglePressed_ = viewer.isKeyPressed(ViewerKey::L);
 }
 
@@ -53,6 +55,13 @@ bool InputController::wasCudaNaiveBackendPressed() const
     return isRisingEdge(
         previousCudaNaiveBackendPressed_,
         currentCudaNaiveBackendPressed_);
+}
+
+bool InputController::wasCudaGridBackendPressed() const
+{
+    return isRisingEdge(
+        previousCudaGridBackendPressed_,
+        currentCudaGridBackendPressed_);
 }
 
 bool InputController::wasLoggingTogglePressed() const

@@ -9,6 +9,7 @@
 #include "cpu/CpuNaiveBackend.hpp"
 #include "cpu/CpuGridBackend.hpp"
 #include "gpu/CudaNaiveBackend.hpp"
+#include "gpu/CudaGridBackend.hpp"
 #include "render/AgentRenderer.hpp"
 #include "render/OpenGLViewer.hpp"
 #include "gpu/CudaSmokeTest.hpp"
@@ -73,6 +74,11 @@ namespace
         case BackendType::CudaNaive:
         {
             backend = std::make_unique<CudaNaiveBackend>();
+            break;
+        }
+        case BackendType::CudaGrid:
+        {
+            backend = std::make_unique<CudaGridBackend>();
             break;
         }
 
@@ -214,6 +220,7 @@ int main()
     std::cout << "  1     : switch to CPU Naive backend\n";
     std::cout << "  2     : switch to CPU Grid backend\n";
     std::cout << "  3     : switch to CUDA Naive backend\n";
+    std::cout << "  4     : switch to CUDA Grid backend\n";
     std::cout << "  SPACE : spawn " << SPAWN_COUNT << " agents\n";
     std::cout << "  R     : reset simulation\n";
     std::cout << "  P     : pause/resume\n";
@@ -337,6 +344,28 @@ int main()
                 previousFrameTime = Clock::now();
 
                 std::cout << "Switched backend to CUDA Naive. Agent count: "
+                          << backend->getAgentCount()
+                          << '\n';
+            }
+        }
+
+        if (input.wasCudaGridBackendPressed())
+        {
+            if (backend->getType() != BackendType::CudaGrid)
+            {
+                const AgentData currentState{backend->getAgentData()};
+
+                activeBackendType = BackendType::CudaGrid;
+
+                backend = createBackend(
+                    activeBackendType,
+                    currentState,
+                    params);
+
+                simulationAccumulatorSeconds = 0.0;
+                previousFrameTime = Clock::now();
+
+                std::cout << "Switched backend to CUDA Grid. Agent count: "
                           << backend->getAgentCount()
                           << '\n';
             }

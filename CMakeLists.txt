@@ -57,6 +57,7 @@ add_executable(SwarmCudaProject
     src/gpu/CudaSmokeTest.cu
     src/gpu/CudaAgentData.cu
     src/gpu/CudaNaiveBackend.cu
+    src/gpu/CudaGridBackend.cu
     src/benchmark/CsvLogger.cpp
 )
 

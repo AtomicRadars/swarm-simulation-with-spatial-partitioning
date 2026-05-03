@@ -14,6 +14,7 @@ public:
     bool wasCpuNaiveBackendPressed() const;
     bool wasCpuGridBackendPressed() const;
     bool wasCudaNaiveBackendPressed() const;
+    bool wasCudaGridBackendPressed() const;
     bool wasLoggingTogglePressed() const;
 
 private:
@@ -26,6 +27,7 @@ private:
     bool previousCpuNaiveBackendPressed_{false};
     bool previousCpuGridBackendPressed_{false};
     bool previousCudaNaiveBackendPressed_{false};
+    bool previousCudaGridBackendPressed_{false};
     bool previousLoggingTogglePressed_{false};
 
     bool currentSpawnPressed_{false};
@@ -34,5 +36,6 @@ private:
     bool currentCpuNaiveBackendPressed_{false};
     bool currentCpuGridBackendPressed_{false};
     bool currentCudaNaiveBackendPressed_{false};
+    bool currentCudaGridBackendPressed_{false};
     bool currentLoggingTogglePressed_{false};
 };
