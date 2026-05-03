@@ -188,6 +188,37 @@ namespace
         data[index] = index;
     }
 
+    __global__ void countAgentsPerCellKernel(const int *agentCellIndices, int *cellCounts, int agentCount)
+    {
+        const int index = blockIdx.x * blockDim.x + threadIdx.x;
+        if (index >= agentCount) return;
+        atomicAdd(&cellCounts[agentCellIndices[index]], 1);
+    }
+
+    __global__ void simpleExclusiveScanKernel(int *data, int n)
+    {
+        // For small cell counts, a single block scan is sufficient and robust.
+        // This is much more compatible with ZLUDA than Thrust's internal radix sort.
+        if (threadIdx.x > 0) return; 
+
+        int sum = 0;
+        for (int i = 0; i < n; ++i)
+        {
+            int val = data[i];
+            data[i] = sum;
+            sum += val;
+        }
+    }
+
+    __global__ void placeAgentsKernel(const int *agentCellIndices, int *cellOffsets, int *agentIndices, int agentCount)
+    {
+        const int index = blockIdx.x * blockDim.x + threadIdx.x;
+        if (index >= agentCount) return;
+        int cellIdx = agentCellIndices[index];
+        int pos = atomicAdd(&cellOffsets[cellIdx], 1);
+        agentIndices[pos] = index;
+    }
+
     __global__ void findCellBoundariesKernel(
         const int *agentCellIndices, // Sorted
         int *cellStart,
@@ -424,27 +455,23 @@ void CudaGridBackend::step(float dt)
         deviceAgents_.posX(), deviceAgents_.posY(),
         d_agentCellIndices_, agentCount, params_, cellsX_, cellsY_);
 
-    // 2. Initialize agent indices
-    sequenceKernel<<<blockCount, THREADS_PER_BLOCK>>>(d_agentIndices_, agentCount);
-    checkCuda(cudaGetLastError(), "sequenceKernel");
+    // 2. Clear grid counts
+    checkCuda(cudaMemset(d_cellStart_, 0, sizeof(int) * cellCount_), "memset cellStart");
 
-    // 3. Sort by cell index
-    try {
-        thrust::device_ptr<int> th_agentIndices(d_agentIndices_);
-        thrust::device_ptr<int> th_cellIndices(d_agentCellIndices_);
-        // Use stable_sort_by_key as it might use more compatible algorithms (merge sort) than radix sort
-        thrust::stable_sort_by_key(th_cellIndices, th_cellIndices + agentCount, th_agentIndices);
-    } catch (const std::exception& e) {
-        std::cerr << "Thrust error in CudaGridBackend::step: " << e.what() << std::endl;
-    }
+    // 3. Count agents per cell
+    countAgentsPerCellKernel<<<blockCount, THREADS_PER_BLOCK>>>(d_agentCellIndices_, d_cellStart_, agentCount);
+    checkCuda(cudaGetLastError(), "countAgentsPerCellKernel");
 
-    // 4. Find cell boundaries
-    checkCuda(cudaMemset(d_cellStart_, -1, sizeof(int) * cellCount_), "memset cellStart");
-    checkCuda(cudaMemset(d_cellEnd_, -1, sizeof(int) * cellCount_), "memset cellEnd");
-    findCellBoundariesKernel<<<blockCount, THREADS_PER_BLOCK>>>(
-        d_agentCellIndices_, d_cellStart_, d_cellEnd_, agentCount);
+    // 4. Prefix sum to get offsets
+    simpleExclusiveScanKernel<<<1, 1>>>(d_cellStart_, cellCount_);
+    checkCuda(cudaGetLastError(), "simpleExclusiveScanKernel");
 
-    // 5. Run simulation kernel
+    // 5. Place agent indices into sorted list and compute end boundaries
+    checkCuda(cudaMemcpy(d_cellEnd_, d_cellStart_, sizeof(int) * cellCount_, cudaMemcpyDeviceToDevice), "memcpy offsets");
+    placeAgentsKernel<<<blockCount, THREADS_PER_BLOCK>>>(d_agentCellIndices_, d_cellEnd_, d_agentIndices_, agentCount);
+    checkCuda(cudaGetLastError(), "placeAgentsKernel");
+
+    // 6. Run simulation kernel
     gridBoidsKernel<<<blockCount, THREADS_PER_BLOCK>>>(
         deviceAgents_.posX(), deviceAgents_.posY(),
         deviceAgents_.velX(), deviceAgents_.velY(),
