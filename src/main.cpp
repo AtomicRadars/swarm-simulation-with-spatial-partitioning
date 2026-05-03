@@ -25,7 +25,7 @@
 namespace
 {
 
-    constexpr int SPAWN_COUNT{500};
+    constexpr int SPAWN_COUNT{250};
     constexpr double FIXED_TIMESTEP_SECONDS{0.016};  // fixed delta time for each simulation step
     constexpr int MAX_SIMULATION_STEPS_PER_FRAME{5}; // if frame is delayed too much, execute 5 simulation steps each frame at most
 

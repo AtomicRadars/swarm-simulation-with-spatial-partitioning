@@ -10,7 +10,8 @@ public:
 
     void setSimulationTimeMs(double simulationTimeMs);
     void setRenderTimeMs(double renderTimeMs);
-void setBackendTimingMs(double gpuStepTimeMs, double deviceToHostCopyTimeMs);    void setSimulationStepCount(int stepCount);
+    void setBackendTimingMs(double gpuStepTimeMs, double deviceToHostCopyTimeMs);
+    void setSimulationStepCount(int stepCount);
 
     void endFrame();
 
@@ -62,6 +63,8 @@ private:
     double averageFps_{0.0};
 
     double titleUpdateAccumulatorSeconds_{0.0};
+
+    bool hasFreshAverages_{false};
 
     std::chrono::high_resolution_clock::time_point frameStartTime_{};
 };

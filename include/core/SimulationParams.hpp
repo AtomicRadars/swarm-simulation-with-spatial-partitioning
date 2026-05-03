@@ -19,7 +19,7 @@ struct SimulationParams
 
     bool useWrapAround{true};
 
-    int initialAgentCount{1000};
+    int initialAgentCount{250};
     int maxAgentCapacity{100000};
 
     // 3x3 cell control works with assumption: gridCellSize >= neighborRadius

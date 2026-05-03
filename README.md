@@ -55,7 +55,7 @@ Once the simulation is running, use the following keys to interact with it:
 | `2` | Switch to **CPU Grid** Backend |
 | `3` | Switch to **CUDA Naive** Backend |
 | `4` | Switch to **CUDA Grid** Backend |
-| `SPACE` | Spawn 500 agents |
+| `SPACE` | Spawn 250 agents |
 | `R` | Reset simulation |
 | `P` | Pause / Resume |
 | `L` | Toggle CSV Performance Logging |

@@ -9,9 +9,13 @@ void FrameStats::beginFrame()
 
     currentSimulationTimeMs_ = 0.0;
     currentRenderTimeMs_ = 0.0;
-    currentGpuStepTimeMs_  = 0.0;
+    currentGpuStepTimeMs_ = 0.0;
     currentDeviceToHostCopyTimeMs_ = 0.0;
     currentSimulationStepCount_ = 0;
+
+    // Fresh averages are produced only when the interval expires.
+    // Otherwise CSV spam goes brrrr
+    hasFreshAverages_ = false;
 }
 
 void FrameStats::setSimulationTimeMs(double simulationTimeMs)
@@ -28,7 +32,7 @@ void FrameStats::setBackendTimingMs(
     double kernelTimeMs,
     double deviceToHostCopyTimeMs)
 {
-    currentGpuStepTimeMs_  = kernelTimeMs;
+    currentGpuStepTimeMs_ = kernelTimeMs;
     currentDeviceToHostCopyTimeMs_ = deviceToHostCopyTimeMs;
 }
 
@@ -49,7 +53,7 @@ void FrameStats::endFrame()
     accumulatedFrameTimeMs_ += lastFrameTimeMs_;
     accumulatedSimulationTimeMs_ += currentSimulationTimeMs_;
     accumulatedRenderTimeMs_ += currentRenderTimeMs_;
-    accumulatedGpuStepTimeMs_  += currentGpuStepTimeMs_;
+    accumulatedGpuStepTimeMs_ += currentGpuStepTimeMs_;
     accumulatedDeviceToHostCopyTimeMs_ += currentDeviceToHostCopyTimeMs_;
 
     ++accumulatedFrameCount_;
@@ -79,8 +83,8 @@ void FrameStats::endFrame()
                 accumulatedSimulationTimeMs_ /
                 static_cast<double>(accumulatedSimulationStepCount_);
 
-            averageGpuStepTimePerStepMs_  =
-                accumulatedGpuStepTimeMs_  /
+            averageGpuStepTimePerStepMs_ =
+                accumulatedGpuStepTimeMs_ /
                 static_cast<double>(accumulatedSimulationStepCount_);
 
             averageDeviceToHostCopyTimePerStepMs_ =
@@ -113,12 +117,16 @@ void FrameStats::endFrame()
         accumulatedSimulationStepCount_ = 0;
 
         titleUpdateAccumulatorSeconds_ = 0.0;
+
+        // This frame produced a new stats sample.
+        // Title and CSV may update exactly once.
+        hasFreshAverages_ = true;
     }
 }
 
 bool FrameStats::shouldUpdateTitle() const
 {
-    return averageFrameTimeMs_ > 0.0;
+    return hasFreshAverages_;
 }
 
 std::string FrameStats::buildWindowTitle(
@@ -138,10 +146,10 @@ std::string FrameStats::buildWindowTitle(
         << " | Steps/F: " << averageSimulationStepsPerFrame_
         << " | Render: " << averageRenderTimeMs_ << " ms";
 
-    if (averageGpuStepTimePerStepMs_  > 0.0 ||
+    if (averageGpuStepTimePerStepMs_ > 0.0 ||
         averageDeviceToHostCopyTimePerStepMs_ > 0.0)
     {
-        oss << " | GPU/Step: " << averageGpuStepTimePerStepMs_  << " ms"
+        oss << " | GPU/Step: " << averageGpuStepTimePerStepMs_ << " ms"
             << " | D2H/Step: " << averageDeviceToHostCopyTimePerStepMs_ << " ms";
     }
 
