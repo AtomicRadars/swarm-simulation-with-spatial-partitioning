@@ -10,7 +10,8 @@ set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 # CUDA 13.2 does not officially support MSVC 19.50+ (VS 2026).
 # This flag bypasses the host-compiler version check.
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -allow-unsupported-compiler")
+# /Zc:preprocessor is required by newer CUDA CCCL headers with MSVC.
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -allow-unsupported-compiler -Xcompiler=/Zc:preprocessor")
 
 include(FetchContent)
 
