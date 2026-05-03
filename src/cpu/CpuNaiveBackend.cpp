@@ -373,3 +373,8 @@ void CpuNaiveBackend::computeWrappedDelta(
         outDy += params_.worldHeight;
     }
 }
+
+BackendTiming CpuNaiveBackend::getLastBackendTiming() const
+{
+    return {};
+}

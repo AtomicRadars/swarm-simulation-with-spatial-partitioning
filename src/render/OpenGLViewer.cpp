@@ -32,6 +32,9 @@ namespace
         case ViewerKey::Num4:
             return GLFW_KEY_4;
 
+        case ViewerKey::L:
+            return GLFW_KEY_L;
+
         default:
             return GLFW_KEY_UNKNOWN;
         }

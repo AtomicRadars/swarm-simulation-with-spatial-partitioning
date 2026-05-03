@@ -21,6 +21,8 @@ public:
     BackendType getType() const override;
 
     const AgentData &getAgentData() const override;
+    
+    BackendTiming getLastBackendTiming() const override;
 
 private:
     void updateAgentSimpleMotion(int index, float dt); /* not gonna be used, trivial simple linear motion on a straight line */

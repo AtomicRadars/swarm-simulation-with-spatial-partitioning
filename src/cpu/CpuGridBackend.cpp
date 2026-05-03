@@ -575,3 +575,8 @@ void CpuGridBackend::initializeGridStorage()
     // This vector contains indices of the agents that is inside that cell.
     cellAgents_.resize(static_cast<std::size_t>(cellCount_));
 }
+
+BackendTiming CpuGridBackend::getLastBackendTiming() const
+{
+    return {};
+}

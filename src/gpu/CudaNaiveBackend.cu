@@ -5,6 +5,7 @@
 #include <cuda_runtime.h>
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
@@ -25,6 +26,16 @@ namespace
                   << '\n';
 
         return false;
+    }
+
+    double elapsedMilliseconds(
+        const std::chrono::high_resolution_clock::time_point &startTime,
+        const std::chrono::high_resolution_clock::time_point &endTime)
+    {
+        const std::chrono::duration<double, std::milli> elapsed{
+            endTime - startTime};
+
+        return elapsed.count();
     }
 
     __device__ float lengthSquaredDevice(float x, float y)
@@ -373,6 +384,8 @@ void CudaNaiveBackend::initialize(
 
 void CudaNaiveBackend::step(float dt)
 {
+    lastTiming_ = {};
+
     if (dt <= 0.0f)
     {
         return;
@@ -418,6 +431,22 @@ void CudaNaiveBackend::step(float dt)
 
 #endif
 
+    cudaEvent_t kernelStart{};
+    cudaEvent_t kernelStop{};
+
+    if (!checkCuda(cudaEventCreate(&kernelStart), "cudaEventCreate kernelStart"))
+    {
+        return;
+    }
+
+    if (!checkCuda(cudaEventCreate(&kernelStop), "cudaEventCreate kernelStop"))
+    {
+        cudaEventDestroy(kernelStart);
+        return;
+    }
+
+    checkCuda(cudaEventRecord(kernelStart), "cudaEventRecord kernelStart");
+
     // One CUDA thread = one agent update.
     // Still O(N^2), but now the GPU gets to suffer in parallel.
     naiveBoidsKernel<<<blockCount, THREADS_PER_BLOCK>>>(
@@ -433,21 +462,44 @@ void CudaNaiveBackend::step(float dt)
         dt,
         params_);
 
-    deviceAgents_.swapBuffers();
-
     if (!checkCuda(cudaGetLastError(), "naiveBoidsKernel launch"))
     {
         return;
     }
 
-    if (!checkCuda(cudaDeviceSynchronize(), "naiveBoidsKernel synchronize"))
+    checkCuda(cudaEventRecord(kernelStop), "cudaEventRecord kernelStop");
+
+    if (!checkCuda(cudaEventSynchronize(kernelStop), "cudaEventSynchronize kernelStop"))
     {
+        cudaEventDestroy(kernelStart);
+        cudaEventDestroy(kernelStop);
         return;
     }
+
+    float kernelTimeMs{0.0f};
+
+    if (checkCuda(
+            cudaEventElapsedTime(&kernelTimeMs, kernelStart, kernelStop),
+            "cudaEventElapsedTime kernel"))
+    {
+        lastTiming_.kernelTimeMs = static_cast<double>(kernelTimeMs);
+    }
+
+    cudaEventDestroy(kernelStart);
+    cudaEventDestroy(kernelStop);
+
+    deviceAgents_.swapBuffers();
+
+    const auto copyStartTime{std::chrono::high_resolution_clock::now()};
 
     // Temporary CPU render path.
     // CUDA updates on GPU, OpenGL still reads from host
     copyDeviceToHostCache();
+
+    const auto copyEndTime{std::chrono::high_resolution_clock::now()};
+
+    lastTiming_.deviceToHostCopyTimeMs =
+        elapsedMilliseconds(copyStartTime, copyEndTime);
 }
 
 int CudaNaiveBackend::spawnAgents(int count)
@@ -517,4 +569,9 @@ bool CudaNaiveBackend::copyDeviceToHostCache()
     }
 
     return true;
+}
+
+BackendTiming CudaNaiveBackend::getLastBackendTiming() const
+{
+    return lastTiming_;
 }

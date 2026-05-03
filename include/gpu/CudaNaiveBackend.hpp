@@ -26,6 +26,8 @@ public:
 
     const AgentData& getAgentData() const override;
 
+    BackendTiming getLastBackendTiming() const override;
+
 private:
     bool copyDeviceToHostCache();
 
@@ -37,6 +39,8 @@ private:
     AgentData hostAgents_{};
 
     SimulationParams params_{};
+
+    BackendTiming lastTiming_{};
 
     uint32_t nextSpawnSeed_{3000};
 };

@@ -1,6 +1,7 @@
 #include "app/InputController.hpp"
 #include "benchmark/CpuTimer.hpp"
 #include "benchmark/FrameStats.hpp"
+#include "benchmark/CsvLogger.hpp"
 #include "core/AgentData.hpp"
 #include "core/AgentInitializer.hpp"
 #include "core/SimulationBackend.hpp"
@@ -18,11 +19,14 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <chrono>
 
 namespace
 {
 
     constexpr int SPAWN_COUNT{500};
+    constexpr double FIXED_TIMESTEP_SECONDS{0.016};  // fixed delta time for each simulation step
+    constexpr int MAX_SIMULATION_STEPS_PER_FRAME{5}; // if frame is delayed too much, execute 5 simulation steps each frame at most
 
     const char *backendNameFromType(BackendType backendType)
     {
@@ -195,8 +199,14 @@ int main()
 
     InputController input{};
     FrameStats frameStats{};
+    CsvLogger csvLogger{};
 
     bool paused{false};
+
+    using Clock = std::chrono::high_resolution_clock;
+
+    auto previousFrameTime{Clock::now()};
+    double simulationAccumulatorSeconds{0.0};
 
     std::cout << "Viewer initialized successfully.\n";
     std::cout << "Active agent count: " << backend->getAgentCount() << '\n';
@@ -207,6 +217,7 @@ int main()
     std::cout << "  SPACE : spawn " << SPAWN_COUNT << " agents\n";
     std::cout << "  R     : reset simulation\n";
     std::cout << "  P     : pause/resume\n";
+    std::cout << "  L     : toggle CSV logging\n";
     std::cout << "  ESC   : exit\n";
 
     while (!viewer.shouldClose())
@@ -230,6 +241,9 @@ int main()
 
             paused = false;
 
+            simulationAccumulatorSeconds = 0.0;
+            previousFrameTime = Clock::now();
+
             std::cout << "Simulation reset. Backend: "
                       << backendNameFromType(backend->getType())
                       << ", agent count: "
@@ -247,6 +261,21 @@ int main()
                       << '\n';
         }
 
+        if (input.wasLoggingTogglePressed())
+        {
+            if (csvLogger.isOpen())
+            {
+                csvLogger.close();
+            }
+            else
+            {
+                if (!csvLogger.open("swarm_benchmark_log.csv"))
+                {
+                    std::cerr << "Failed to start CSV logging.\n";
+                }
+            }
+        }
+
         if (input.wasCpuNaiveBackendPressed())
         {
             if (backend->getType() != BackendType::CpuNaive)
@@ -259,6 +288,9 @@ int main()
                     activeBackendType,
                     currentState,
                     params);
+
+                simulationAccumulatorSeconds = 0.0;
+                previousFrameTime = Clock::now();
 
                 std::cout << "Switched backend to CPU Naive. Agent count: "
                           << backend->getAgentCount()
@@ -279,6 +311,9 @@ int main()
                     currentState,
                     params);
 
+                simulationAccumulatorSeconds = 0.0;
+                previousFrameTime = Clock::now();
+
                 std::cout << "Switched backend to CPU Grid. Agent count: "
                           << backend->getAgentCount()
                           << '\n';
@@ -298,28 +333,75 @@ int main()
                     currentState,
                     params);
 
+                simulationAccumulatorSeconds = 0.0;
+                previousFrameTime = Clock::now();
+
                 std::cout << "Switched backend to CUDA Naive. Agent count: "
                           << backend->getAgentCount()
                           << '\n';
             }
         }
 
-        frameStats.beginFrame();
+        const auto currentFrameTime{Clock::now()};
+        const std::chrono::duration<double> realFrameDelta{
+            currentFrameTime - previousFrameTime};
 
-        double simulationTimeMs{0.0};
+        previousFrameTime = currentFrameTime;
 
         if (!paused)
         {
+            simulationAccumulatorSeconds += realFrameDelta.count();
+        }
+        else
+        {
+            // Pause means pause time too.
+            simulationAccumulatorSeconds = 0.0;
+        }
+
+        frameStats.beginFrame();
+
+        double simulationTimeMs{0.0};
+        double accumulatedKernelTimeMs{0.0};
+        double accumulatedDeviceToHostCopyTimeMs{0.0};
+
+        int simulationStepsThisFrame{0};
+
+        while (!paused &&
+               simulationAccumulatorSeconds >= FIXED_TIMESTEP_SECONDS &&
+               simulationStepsThisFrame < MAX_SIMULATION_STEPS_PER_FRAME)
+        {
             CpuTimer simulationTimer{};
-            backend->step(params.deltaTime);
-            simulationTimeMs = simulationTimer.elapsedMilliseconds();
+
+            backend->step(static_cast<float>(FIXED_TIMESTEP_SECONDS));
+
+            simulationTimeMs += simulationTimer.elapsedMilliseconds();
+
+            const BackendTiming backendTiming{backend->getLastBackendTiming()};
+
+            accumulatedKernelTimeMs += backendTiming.kernelTimeMs;
+            accumulatedDeviceToHostCopyTimeMs += backendTiming.deviceToHostCopyTimeMs;
+
+            simulationAccumulatorSeconds -= FIXED_TIMESTEP_SECONDS;
+            ++simulationStepsThisFrame;
+        }
+
+        if (simulationStepsThisFrame == MAX_SIMULATION_STEPS_PER_FRAME &&
+            simulationAccumulatorSeconds >= FIXED_TIMESTEP_SECONDS)
+        {
+            // If we fall too far behind, drop extra accumulated time.
+            // Better a tiny time skip than a death spiral.
+            simulationAccumulatorSeconds = 0.0;
         }
 
         frameStats.setSimulationTimeMs(simulationTimeMs);
+        frameStats.setSimulationStepCount(simulationStepsThisFrame);
+        frameStats.setBackendTimingMs(
+            accumulatedKernelTimeMs,
+            accumulatedDeviceToHostCopyTimeMs);
 
         CpuTimer renderTimer{};
         viewer.beginFrame();
-        // Renderer handles drawing now.
+        // Renderer handles drawing.
         // Viewer has enough adult responsibilities with window/context stuff.
         agentRenderer.render(backend->getAgentData());
 
@@ -335,6 +417,9 @@ int main()
             const std::string applicationName{
                 paused ? "Swarm Simulation [PAUSED]" : "Swarm Simulation"};
 
+            const std::string backendName{
+                backendNameFromType(backend->getType())};
+
             const std::string title{
                 frameStats.buildWindowTitle(
                     applicationName,
@@ -342,6 +427,14 @@ int main()
                     backend->getAgentCount())};
 
             viewer.setWindowTitle(title.c_str());
+
+            if (csvLogger.isOpen())
+            {
+                csvLogger.writeSample(
+                    backendName,
+                    backend->getAgentCount(),
+                    frameStats);
+            }
         }
     }
 

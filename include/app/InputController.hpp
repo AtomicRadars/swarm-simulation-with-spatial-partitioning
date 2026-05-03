@@ -14,6 +14,7 @@ public:
     bool wasCpuNaiveBackendPressed() const;
     bool wasCpuGridBackendPressed() const;
     bool wasCudaNaiveBackendPressed() const;
+    bool wasLoggingTogglePressed() const;
 
 private:
     static bool isRisingEdge(bool previous, bool current);
@@ -25,6 +26,7 @@ private:
     bool previousCpuNaiveBackendPressed_{false};
     bool previousCpuGridBackendPressed_{false};
     bool previousCudaNaiveBackendPressed_{false};
+    bool previousLoggingTogglePressed_{false};
 
     bool currentSpawnPressed_{false};
     bool currentResetPressed_{false};
@@ -32,4 +34,5 @@ private:
     bool currentCpuNaiveBackendPressed_{false};
     bool currentCpuGridBackendPressed_{false};
     bool currentCudaNaiveBackendPressed_{false};
+    bool currentLoggingTogglePressed_{false};
 };

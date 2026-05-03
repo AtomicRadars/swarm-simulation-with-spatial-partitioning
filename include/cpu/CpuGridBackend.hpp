@@ -25,6 +25,8 @@ public:
 
     const AgentData &getAgentData() const override;
 
+    BackendTiming getLastBackendTiming() const override;
+
     // Distribute agents across the grid
     void rebuildGrid();
 

@@ -3,6 +3,7 @@
 
 #include "AgentData.hpp"
 #include "BackendType.hpp"
+#include "BackendTiming.hpp"
 #include "SimulationParams.hpp"
 
 class ISimulationBackend
@@ -24,4 +25,6 @@ public:
     virtual BackendType getType() const = 0;
 
     virtual const AgentData& getAgentData() const = 0;
+
+    virtual BackendTiming getLastBackendTiming() const = 0;
 };
