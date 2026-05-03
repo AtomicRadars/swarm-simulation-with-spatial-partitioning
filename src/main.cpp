@@ -390,7 +390,7 @@ int main()
         frameStats.beginFrame();
 
         double simulationTimeMs{0.0};
-        double accumulatedKernelTimeMs{0.0};
+        double accumulatedGpuStepTimeMs{0.0};
         double accumulatedDeviceToHostCopyTimeMs{0.0};
 
         int simulationStepsThisFrame{0};
@@ -407,7 +407,7 @@ int main()
 
             const BackendTiming backendTiming{backend->getLastBackendTiming()};
 
-            accumulatedKernelTimeMs += backendTiming.kernelTimeMs;
+            accumulatedGpuStepTimeMs += backendTiming.gpuStepTimeMs;
             accumulatedDeviceToHostCopyTimeMs += backendTiming.deviceToHostCopyTimeMs;
 
             simulationAccumulatorSeconds -= FIXED_TIMESTEP_SECONDS;
@@ -425,7 +425,7 @@ int main()
         frameStats.setSimulationTimeMs(simulationTimeMs);
         frameStats.setSimulationStepCount(simulationStepsThisFrame);
         frameStats.setBackendTimingMs(
-            accumulatedKernelTimeMs,
+            accumulatedGpuStepTimeMs,
             accumulatedDeviceToHostCopyTimeMs);
 
         CpuTimer renderTimer{};

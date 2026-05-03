@@ -427,7 +427,7 @@ void CudaGridBackend::initialize(const AgentData &initialData, const SimulationP
     {
         throw std::runtime_error{"CudaGridBackend invalid grid dimensions."};
     }
-    
+
     cellCount_ = cellsX_ * cellsY_;
 
     if (!deviceAgents_.allocate(initialData.capacity))
@@ -577,9 +577,9 @@ void CudaGridBackend::step(float dt)
             cudaEventElapsedTime(&gpuStepTimeMs, gpuStepStart, gpuStepStop),
             "cudaEventElapsedTime gpu step"))
     {
-        // In CudaGridBackend this means total GPU step:
-        // cell indexing + counting + scan + placement + boids update.
-        lastTiming_.kernelTimeMs = static_cast<double>(gpuStepTimeMs);
+        // Total GPU-side step time:
+        // grid construction + compact cell list creation + grid boids update.
+        lastTiming_.gpuStepTimeMs = static_cast<double>(gpuStepTimeMs);
     }
 
     cudaEventDestroy(gpuStepStart);

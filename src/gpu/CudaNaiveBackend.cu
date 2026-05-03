@@ -482,7 +482,9 @@ void CudaNaiveBackend::step(float dt)
             cudaEventElapsedTime(&kernelTimeMs, kernelStart, kernelStop),
             "cudaEventElapsedTime kernel"))
     {
-        lastTiming_.kernelTimeMs = static_cast<double>(kernelTimeMs);
+        // For CUDA Naive this is basically the naive boids kernel time.
+        // The generic metric name is gpuStepTimeMs because CUDA Grid has multiple kernels.
+        lastTiming_.gpuStepTimeMs = static_cast<double>(kernelTimeMs);
     }
 
     cudaEventDestroy(kernelStart);

@@ -10,8 +10,7 @@ public:
 
     void setSimulationTimeMs(double simulationTimeMs);
     void setRenderTimeMs(double renderTimeMs);
-    void setBackendTimingMs(double kernelTimeMs, double deviceToHostCopyTimeMs);
-    void setSimulationStepCount(int stepCount);
+void setBackendTimingMs(double gpuStepTimeMs, double deviceToHostCopyTimeMs);    void setSimulationStepCount(int stepCount);
 
     void endFrame();
 
@@ -27,7 +26,7 @@ public:
     double getAverageSimulationTimePerFrameMs() const;
     double getAverageSimulationTimePerStepMs() const;
     double getAverageRenderTimeMs() const;
-    double getAverageKernelTimePerStepMs() const;
+    double getAverageGpuStepTimePerStepMs() const;
     double getAverageDeviceToHostCopyTimePerStepMs() const;
     double getAverageSimulationStepsPerFrame() const;
     double getAverageFps() const;
@@ -40,14 +39,14 @@ private:
 
     double currentSimulationTimeMs_{0.0};
     double currentRenderTimeMs_{0.0};
-    double currentKernelTimeMs_{0.0};
+    double currentGpuStepTimeMs_{0.0};
     double currentDeviceToHostCopyTimeMs_{0.0};
     int currentSimulationStepCount_{0};
 
     double accumulatedFrameTimeMs_{0.0};
     double accumulatedSimulationTimeMs_{0.0};
     double accumulatedRenderTimeMs_{0.0};
-    double accumulatedKernelTimeMs_{0.0};
+    double accumulatedGpuStepTimeMs_{0.0};
     double accumulatedDeviceToHostCopyTimeMs_{0.0};
 
     int accumulatedFrameCount_{0};
@@ -57,7 +56,7 @@ private:
     double averageSimulationTimePerFrameMs_{0.0};
     double averageSimulationTimePerStepMs_{0.0};
     double averageRenderTimeMs_{0.0};
-    double averageKernelTimePerStepMs_{0.0};
+    double averageGpuStepTimePerStepMs_{0.0};
     double averageDeviceToHostCopyTimePerStepMs_{0.0};
     double averageSimulationStepsPerFrame_{0.0};
     double averageFps_{0.0};

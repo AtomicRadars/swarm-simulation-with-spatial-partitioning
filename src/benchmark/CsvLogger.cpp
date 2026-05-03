@@ -31,7 +31,7 @@ bool CsvLogger::open(const std::string& filePath)
           << "sim_step_ms,"
           << "steps_per_frame,"
           << "render_ms,"
-          << "kernel_step_ms,"
+          << "gpu_step_ms,"
           << "d2h_step_ms\n";
 
     headerWritten_ = true;
@@ -81,7 +81,7 @@ void CsvLogger::writeSample(
           << frameStats.getAverageSimulationTimePerStepMs() << ','
           << frameStats.getAverageSimulationStepsPerFrame() << ','
           << frameStats.getAverageRenderTimeMs() << ','
-          << frameStats.getAverageKernelTimePerStepMs() << ','
+          << frameStats.getAverageGpuStepTimePerStepMs() << ','
           << frameStats.getAverageDeviceToHostCopyTimePerStepMs()
           << '\n';
 
