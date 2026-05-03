@@ -7,8 +7,10 @@ enum class ViewerKey
     Space,
     R,
     P,
-    Num1,
-    Num2
+    Num1, // CPU-Naive
+    Num2, // CPU-Grid
+    Num3, // CUDA-Naive
+    Num4 // CUDA-Grid
 };
 
 class OpenGLViewer

@@ -52,6 +52,7 @@ add_executable(SwarmCudaProject
     src/benchmark/FrameStats.cpp
     src/gpu/CudaSmokeTest.cu
     src/gpu/CudaAgentData.cu
+    src/gpu/CudaNaiveBackend.cu
 )
 
 target_include_directories(SwarmCudaProject

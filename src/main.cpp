@@ -5,8 +5,9 @@
 #include "core/AgentInitializer.hpp"
 #include "core/SimulationBackend.hpp"
 #include "core/SimulationParams.hpp"
-#include "cpu/CpuGridBackend.hpp"
 #include "cpu/CpuNaiveBackend.hpp"
+#include "cpu/CpuGridBackend.hpp"
+#include "gpu/CudaNaiveBackend.hpp"
 #include "render/AgentRenderer.hpp"
 #include "render/OpenGLViewer.hpp"
 #include "gpu/CudaSmokeTest.hpp"
@@ -62,6 +63,12 @@ namespace
         case BackendType::CpuGrid:
         {
             backend = std::make_unique<CpuGridBackend>();
+            break;
+        }
+
+        case BackendType::CudaNaive:
+        {
+            backend = std::make_unique<CudaNaiveBackend>();
             break;
         }
 
@@ -196,6 +203,7 @@ int main()
     std::cout << "Controls:\n";
     std::cout << "  1     : switch to CPU Naive backend\n";
     std::cout << "  2     : switch to CPU Grid backend\n";
+    std::cout << "  3     : switch to CUDA Naive backend\n";
     std::cout << "  SPACE : spawn " << SPAWN_COUNT << " agents\n";
     std::cout << "  R     : reset simulation\n";
     std::cout << "  P     : pause/resume\n";
@@ -205,6 +213,13 @@ int main()
     {
         viewer.pollEvents();
         input.update(viewer);
+
+        if (input.wasPausePressed())
+        {
+            paused = !paused;
+
+            std::cout << (paused ? "Simulation paused.\n" : "Simulation resumed.\n");
+        }
 
         if (input.wasResetPressed())
         {
@@ -219,6 +234,16 @@ int main()
                       << backendNameFromType(backend->getType())
                       << ", agent count: "
                       << backend->getAgentCount()
+                      << '\n';
+        }
+
+        if (input.wasSpawnPressed())
+        {
+            const int spawned{backend->spawnAgents(SPAWN_COUNT)};
+
+            std::cout << "Spawn requested: " << SPAWN_COUNT
+                      << ", spawned: " << spawned
+                      << ", total agents: " << backend->getAgentCount()
                       << '\n';
         }
 
@@ -260,14 +285,23 @@ int main()
             }
         }
 
-        if (input.wasSpawnPressed())
+        if (input.wasCudaNaiveBackendPressed())
         {
-            const int spawned{backend->spawnAgents(SPAWN_COUNT)};
+            if (backend->getType() != BackendType::CudaNaive)
+            {
+                const AgentData currentState{backend->getAgentData()};
 
-            std::cout << "Spawn requested: " << SPAWN_COUNT
-                      << ", spawned: " << spawned
-                      << ", total agents: " << backend->getAgentCount()
-                      << '\n';
+                activeBackendType = BackendType::CudaNaive;
+
+                backend = createBackend(
+                    activeBackendType,
+                    currentState,
+                    params);
+
+                std::cout << "Switched backend to CUDA Naive. Agent count: "
+                          << backend->getAgentCount()
+                          << '\n';
+            }
         }
 
         frameStats.beginFrame();

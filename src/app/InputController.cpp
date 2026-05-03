@@ -1,18 +1,20 @@
 #include "app/InputController.hpp"
 
-void InputController::update(const OpenGLViewer &viewer)
+void InputController::update(const OpenGLViewer& viewer)
 {
     previousSpawnPressed_ = currentSpawnPressed_;
     previousResetPressed_ = currentResetPressed_;
     previousPausePressed_ = currentPausePressed_;
     previousCpuNaiveBackendPressed_ = currentCpuNaiveBackendPressed_;
     previousCpuGridBackendPressed_ = currentCpuGridBackendPressed_;
+    previousCudaNaiveBackendPressed_ = currentCudaNaiveBackendPressed_;
 
     currentSpawnPressed_ = viewer.isKeyPressed(ViewerKey::Space);
     currentResetPressed_ = viewer.isKeyPressed(ViewerKey::R);
     currentPausePressed_ = viewer.isKeyPressed(ViewerKey::P);
     currentCpuNaiveBackendPressed_ = viewer.isKeyPressed(ViewerKey::Num1);
     currentCpuGridBackendPressed_ = viewer.isKeyPressed(ViewerKey::Num2);
+    currentCudaNaiveBackendPressed_ = viewer.isKeyPressed(ViewerKey::Num3);
 }
 
 bool InputController::wasSpawnPressed() const
@@ -34,14 +36,24 @@ bool InputController::wasCpuNaiveBackendPressed() const
 {
     return isRisingEdge(
         previousCpuNaiveBackendPressed_,
-        currentCpuNaiveBackendPressed_);
+        currentCpuNaiveBackendPressed_
+    );
 }
 
 bool InputController::wasCpuGridBackendPressed() const
 {
     return isRisingEdge(
         previousCpuGridBackendPressed_,
-        currentCpuGridBackendPressed_);
+        currentCpuGridBackendPressed_
+    );
+}
+
+bool InputController::wasCudaNaiveBackendPressed() const
+{
+    return isRisingEdge(
+        previousCudaNaiveBackendPressed_,
+        currentCudaNaiveBackendPressed_
+    );
 }
 
 bool InputController::isRisingEdge(bool previous, bool current)

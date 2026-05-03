@@ -13,6 +13,7 @@ public:
 
     bool wasCpuNaiveBackendPressed() const;
     bool wasCpuGridBackendPressed() const;
+    bool wasCudaNaiveBackendPressed() const;
 
 private:
     static bool isRisingEdge(bool previous, bool current);
@@ -23,10 +24,12 @@ private:
     bool previousPausePressed_{false};
     bool previousCpuNaiveBackendPressed_{false};
     bool previousCpuGridBackendPressed_{false};
+    bool previousCudaNaiveBackendPressed_{false};
 
     bool currentSpawnPressed_{false};
     bool currentResetPressed_{false};
     bool currentPausePressed_{false};
     bool currentCpuNaiveBackendPressed_{false};
     bool currentCpuGridBackendPressed_{false};
+    bool currentCudaNaiveBackendPressed_{false};
 };
