@@ -8,6 +8,7 @@ public:
     void update(const OpenGLViewer &viewer);
 
     bool wasSpawnPressed() const;
+    bool wasSpawnThousandPressed() const;
     bool wasResetPressed() const;
     bool wasPausePressed() const;
 
@@ -22,6 +23,7 @@ private:
 
 private:
     bool previousSpawnPressed_{false};
+    bool previousSpawnThousandPressed_{false};
     bool previousResetPressed_{false};
     bool previousPausePressed_{false};
     bool previousCpuNaiveBackendPressed_{false};
@@ -31,6 +33,7 @@ private:
     bool previousLoggingTogglePressed_{false};
 
     bool currentSpawnPressed_{false};
+    bool currentSpawnThousandPressed_{false};
     bool currentResetPressed_{false};
     bool currentPausePressed_{false};
     bool currentCpuNaiveBackendPressed_{false};

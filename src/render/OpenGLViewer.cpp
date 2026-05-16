@@ -13,6 +13,9 @@ namespace
         {
         case ViewerKey::Space:
             return GLFW_KEY_SPACE;
+        
+        case ViewerKey::B:
+            return GLFW_KEY_B;
 
         case ViewerKey::R:
             return GLFW_KEY_R;

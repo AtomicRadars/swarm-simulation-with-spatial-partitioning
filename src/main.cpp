@@ -25,7 +25,8 @@
 namespace
 {
 
-    constexpr int SPAWN_COUNT{250};
+    constexpr int SPAWN_DEFAULT_COUNT{250};
+    constexpr int SPAWN_THOUSAND_COUNT{1000};
     constexpr double FIXED_TIMESTEP_SECONDS{0.016};  // fixed delta time for each simulation step
     constexpr int MAX_SIMULATION_STEPS_PER_FRAME{5}; // if frame is delayed too much, execute 5 simulation steps each frame at most
 
@@ -221,7 +222,8 @@ int main()
     std::cout << "  2     : switch to CPU Grid backend\n";
     std::cout << "  3     : switch to CUDA Naive backend\n";
     std::cout << "  4     : switch to CUDA Grid backend\n";
-    std::cout << "  SPACE : spawn " << SPAWN_COUNT << " agents\n";
+    std::cout << "  SPACE : spawn " << SPAWN_DEFAULT_COUNT << " agents\n";
+    std::cout << "  B     : spawn " << SPAWN_THOUSAND_COUNT << " agents\n";
     std::cout << "  R     : reset simulation\n";
     std::cout << "  P     : pause/resume\n";
     std::cout << "  L     : toggle CSV logging\n";
@@ -260,9 +262,19 @@ int main()
 
         if (input.wasSpawnPressed())
         {
-            const int spawned{backend->spawnAgents(SPAWN_COUNT)};
+            const int spawned{backend->spawnAgents(SPAWN_DEFAULT_COUNT)};
 
-            std::cout << "Spawn requested: " << SPAWN_COUNT
+            std::cout << "Spawn requested: " << SPAWN_DEFAULT_COUNT
+                      << ", spawned: " << spawned
+                      << ", total agents: " << backend->getAgentCount()
+                      << '\n';
+        }
+
+        if (input.wasSpawnThousandPressed())
+        {
+            const int spawned{backend->spawnAgents(SPAWN_THOUSAND_COUNT)};
+
+            std::cout << "Spawn requested: " << SPAWN_THOUSAND_COUNT
                       << ", spawned: " << spawned
                       << ", total agents: " << backend->getAgentCount()
                       << '\n';

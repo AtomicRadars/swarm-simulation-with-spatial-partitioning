@@ -4,14 +4,15 @@ struct GLFWwindow;
 
 enum class ViewerKey
 {
-    Space, // Spawn agents
+    Space, // Spawn agents (250)
     R,     // Reset
     P,     // Pause
     Num1,  // CPU-Naive
     Num2,  // CPU-Grid
     Num3,  // CUDA-Naive
     Num4,  // CUDA-Grid
-    L      // CSV Logger
+    L,     // CSV Logger
+    B      // Spawn Agents (1000)
 };
 
 class OpenGLViewer

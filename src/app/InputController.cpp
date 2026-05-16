@@ -3,6 +3,7 @@
 void InputController::update(const OpenGLViewer &viewer)
 {
     previousSpawnPressed_ = currentSpawnPressed_;
+    previousSpawnThousandPressed_ = currentSpawnThousandPressed_;
     previousResetPressed_ = currentResetPressed_;
     previousPausePressed_ = currentPausePressed_;
     previousCpuNaiveBackendPressed_ = currentCpuNaiveBackendPressed_;
@@ -12,6 +13,7 @@ void InputController::update(const OpenGLViewer &viewer)
     previousLoggingTogglePressed_ = currentLoggingTogglePressed_;
 
     currentSpawnPressed_ = viewer.isKeyPressed(ViewerKey::Space);
+    currentSpawnThousandPressed_ = viewer.isKeyPressed(ViewerKey::B);
     currentResetPressed_ = viewer.isKeyPressed(ViewerKey::R);
     currentPausePressed_ = viewer.isKeyPressed(ViewerKey::P);
     currentCpuNaiveBackendPressed_ = viewer.isKeyPressed(ViewerKey::Num1);
@@ -24,6 +26,11 @@ void InputController::update(const OpenGLViewer &viewer)
 bool InputController::wasSpawnPressed() const
 {
     return isRisingEdge(previousSpawnPressed_, currentSpawnPressed_);
+}
+
+bool InputController::wasSpawnThousandPressed() const
+{
+    return isRisingEdge(previousSpawnThousandPressed_, currentSpawnThousandPressed_);
 }
 
 bool InputController::wasResetPressed() const
